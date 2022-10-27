@@ -6,7 +6,6 @@ describe("Testing", async () => {
     
     let name : string;
     let symbol : string;
-    let maxTokensConnected : BigNumber;
 
     let holder : Signer;
     let user1 : Signer;
@@ -35,13 +34,12 @@ describe("Testing", async () => {
 
             name = "UpgradedNFT";
             symbol = "NFT";
-            maxTokensConnected = BigNumber.from(2);
             
             USDC1Amount = ethers.utils.parseUnits("15", 18);
             USDC2Amount = ethers.utils.parseUnits("30", 18);
             USDC3Amount = ethers.utils.parseUnits("45", 18);
 
-            UpgradedNFT = await UpgratedNFTContractFactory.deploy(maxTokensConnected);
+            UpgradedNFT = await UpgratedNFTContractFactory.deploy();
             USDC1 = await ERC20ContractFactory1.deploy();
             USDC2 = await ERC20ContractFactory2.deploy();
             USDC3 = await ERC20ContractFactory3.deploy();
@@ -65,11 +63,6 @@ describe("Testing", async () => {
             it("Should set the correct contract symbol", async () => {
     
                 expect(await UpgradedNFT.symbol()).to.equal(symbol);
-            });
-
-            it("Should set the rigth max amount of tokens connected to NFT", async () => {
-
-                expect(await UpgradedNFT.maxTokensConnected()).to.equal(maxTokensConnected);
             });
 
         });
@@ -117,18 +110,6 @@ describe("Testing", async () => {
                     .to.be.revertedWith("UpgradedNFT: Not an owner");
             });
 
-            it("Should revert when too many tokens connected", async () => {
-
-                await USDC1.connect(holder).approve(UpgradedNFT.address, USDC1Amount);
-                await USDC2.connect(holder).approve(UpgradedNFT.address, USDC2Amount);
-                await USDC3.connect(holder).approve(UpgradedNFT.address, USDC3Amount);
-
-                await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC1.address, USDC1Amount);
-                await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC2.address, USDC2Amount);
-                await expect(UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC3.address, USDC3Amount))
-                    .to.be.revertedWith("UpgradedNFT: Too many tokens connected");
-            });
-
             it("Should revert when allowance is lower than amount to connect", async () => {
 
                 await expect(UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC1.address, USDC1Amount))
@@ -150,13 +131,15 @@ describe("Testing", async () => {
 
                 await USDC1.connect(holder).approve(UpgradedNFT.address, USDC1Amount);
                 await USDC2.connect(holder).approve(UpgradedNFT.address, USDC2Amount);
+                await USDC3.connect(holder).approve(UpgradedNFT.address, USDC3Amount);
                 await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC1.address, USDC1Amount);
                 await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC2.address, USDC2Amount);
+                await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC3.address, USDC3Amount);
 
                 let result = await UpgradedNFT.getTokensBalances(holdersTokenId);
                 let connectedTokensAmount = result[0];
                 
-                expect(connectedTokensAmount).to.be.equal(2);
+                expect(connectedTokensAmount).to.be.equal(3);
             });
 
             it("Should connect a token to an NFT and set the right token address", async () => {
@@ -174,14 +157,16 @@ describe("Testing", async () => {
 
                 await USDC1.connect(holder).approve(UpgradedNFT.address, USDC1Amount);
                 await USDC2.connect(holder).approve(UpgradedNFT.address, USDC2Amount);
+                await USDC3.connect(holder).approve(UpgradedNFT.address, USDC3Amount);
                 await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC1.address, USDC1Amount);
                 await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC2.address, USDC2Amount);
+                await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC3.address, USDC3Amount);
 
                 let result = await UpgradedNFT.getTokensBalances(holdersTokenId);
                 let connectedTokenAddresses = result[1];
-                
                 expect(connectedTokenAddresses[0]).to.be.equal(USDC1.address);
                 expect(connectedTokenAddresses[1]).to.be.equal(USDC2.address);
+                expect(connectedTokenAddresses[2]).to.be.equal(USDC3.address);
             });
 
             it("Should connect a token to an NFT and set the right token amount connected", async () => {
@@ -199,14 +184,17 @@ describe("Testing", async () => {
 
                 await USDC1.connect(holder).approve(UpgradedNFT.address, USDC1Amount);
                 await USDC2.connect(holder).approve(UpgradedNFT.address, USDC2Amount);
+                await USDC3.connect(holder).approve(UpgradedNFT.address, USDC3Amount);
                 await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC1.address, USDC1Amount);
                 await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC2.address, USDC2Amount);
+                await UpgradedNFT.connect(holder).connectERC20Token(holdersTokenId, USDC3.address, USDC3Amount);
 
                 let result = await UpgradedNFT.getTokensBalances(holdersTokenId);
                 let connectedTokenAmounts = result[2];
                 
                 expect(connectedTokenAmounts[0]).to.be.equal(USDC1Amount);
                 expect(connectedTokenAmounts[1]).to.be.equal(USDC2Amount);
+                expect(connectedTokenAmounts[2]).to.be.equal(USDC3Amount);
             });
 
         });
