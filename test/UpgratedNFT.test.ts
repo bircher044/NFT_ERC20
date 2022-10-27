@@ -69,7 +69,7 @@ describe("Testing", async () => {
 
 
 
-        describe("Mint function", async () => {
+        describe("mint function", async () => {
 
             it("Should set the correct owner of the NFT after mint", async () => {
                 

@@ -7,15 +7,10 @@ import "hardhat/console.sol";
 
 contract UpgradedNFT is ERC721 {
 
-    struct connectedTokens { 
-        address[] tokenAddresses;
-        uint256 amount;
-    }
-
     uint256 private LatestTokenID = 0;
     mapping(uint256 => mapping(address => uint256)) private ConnectedTokensAmounts;
     mapping(uint256 => mapping(address => bool)) private ConnectedTokensAddreses;
-    mapping(uint256 => connectedTokens) private connections;
+    mapping(uint256 => address[]) private connections;
 
     constructor() ERC721("UpgradedNFT", "NFT") {}
 
@@ -34,8 +29,7 @@ contract UpgradedNFT is ERC721 {
         ConnectedTokensAmounts[NFTID][tokenAddress] += amount;
         
         if(!ConnectedTokensAddreses[NFTID][tokenAddress]){
-            connections[NFTID].tokenAddresses.push(tokenAddress);
-            connections[NFTID].amount++;
+            connections[NFTID].push(tokenAddress);
         }
         
     }
@@ -51,11 +45,11 @@ contract UpgradedNFT is ERC721 {
     }
 
     function getTokensBalances(uint256 NFTID) public view returns (uint256, address[] memory, uint256[] memory){
-        uint256 amount = connections[NFTID].amount;
+        uint256 amount = connections[NFTID].length;
         address[] memory tokens = new address[](amount);
         uint256[] memory balances = new uint256[](amount);
 
-        tokens = connections[NFTID].tokenAddresses;
+        tokens = connections[NFTID];
 
         for(uint i = 0; i < amount; i++)
             balances[i] = ConnectedTokensAmounts[NFTID][tokens[i]];  
