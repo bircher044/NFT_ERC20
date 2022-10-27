@@ -3,19 +3,21 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "hardhat/console.sol";
 
 contract UpgradedNFT is ERC721 {
-    
-    uint8 public maxTokensConnected;
+
+    struct connectedTokens { 
+        address[] tokenAddresses;
+        uint256 amount;
+    }
+
     uint256 private LatestTokenID = 0;
     mapping(uint256 => mapping(address => uint256)) private ConnectedTokensAmounts;
-    mapping(uint256 => uint8) private ConnectedTokensCounts;
-    mapping(uint256 => mapping(uint256 => address)) private tokenAddressByID;
     mapping(uint256 => mapping(address => bool)) private ConnectedTokensAddreses;
+    mapping(uint256 => connectedTokens) private connections;
 
-    constructor(uint8 _maxTokensConnected) ERC721("UpgradedNFT", "NFT") {
-        maxTokensConnected = _maxTokensConnected;
-    }
+    constructor() ERC721("UpgradedNFT", "NFT") {}
 
     function mint() external returns (uint256) {
         _mint(msg.sender, LatestTokenID);
@@ -24,18 +26,16 @@ contract UpgradedNFT is ERC721 {
     
     function connectERC20Token(uint256 NFTID, address tokenAddress, uint amount) external {
         require(ownerOf(NFTID) == msg.sender, "UpgradedNFT: Not an owner");
-        require(ConnectedTokensCounts[NFTID] < maxTokensConnected, "UpgradedNFT: Too many tokens connected");
 
         IERC20 token = IERC20(tokenAddress);
 
         require(token.allowance(msg.sender, address(this)) >= amount, "UpgradedNFT: Allowance is too low");
         token.transferFrom(msg.sender, address(this), amount);
-
         ConnectedTokensAmounts[NFTID][tokenAddress] += amount;
+        
         if(!ConnectedTokensAddreses[NFTID][tokenAddress]){
-            tokenAddressByID[NFTID][ConnectedTokensCounts[NFTID]] = tokenAddress;
-            ConnectedTokensCounts[NFTID]++;
-            ConnectedTokensAddreses[NFTID][tokenAddress] = true;
+            connections[NFTID].tokenAddresses.push(tokenAddress);
+            connections[NFTID].amount++;
         }
         
     }
@@ -50,17 +50,17 @@ contract UpgradedNFT is ERC721 {
 
     }
 
-    function getTokensBalances(uint256 NFTID) public view returns (uint8, address[] memory, uint256[] memory){
-        uint8 count = ConnectedTokensCounts[NFTID];
-        address[] memory tokens = new address[](count);
-        uint256[] memory balances = new uint256[](count);
+    function getTokensBalances(uint256 NFTID) public view returns (uint256, address[] memory, uint256[] memory){
+        uint256 amount = connections[NFTID].amount;
+        address[] memory tokens = new address[](amount);
+        uint256[] memory balances = new uint256[](amount);
 
-        for(uint i = 0; i < count; i++){
-            tokens[i] = tokenAddressByID[NFTID][i];
-            balances[i] = ConnectedTokensAmounts[NFTID][tokens[i]];
-        }
+        tokens = connections[NFTID].tokenAddresses;
 
-        return (count, tokens, balances);
+        for(uint i = 0; i < amount; i++)
+            balances[i] = ConnectedTokensAmounts[NFTID][tokens[i]];  
+
+        return (amount, tokens, balances);
     }
 
 
