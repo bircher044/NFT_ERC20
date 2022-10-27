@@ -195,7 +195,7 @@ describe("Testing", async () => {
                 expect(connectedTokenAmounts[0]).to.be.equal(USDC1Amount);
             });
 
-            it("Should connect a few tokens to an NFT and set the right tokens addresses", async () => {
+            it("Should connect a token to an NFT and set the right tokens amounts connected", async () => {
 
                 await USDC1.connect(holder).approve(UpgradedNFT.address, USDC1Amount);
                 await USDC2.connect(holder).approve(UpgradedNFT.address, USDC2Amount);
